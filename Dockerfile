@@ -17,14 +17,19 @@ ARG DEV=false
 RUN python -m venv /py && \
     # upgrade venv's pip
     /py/bin/pip install --upgrade pip && \
+    # install postgresql packages
+    apk add --update --no-cache postgresql-client && \
+    apk add --update --no-cache --virtual .tmp-build-deps \
+        build-base postgresql-dev musl-dev && \
     # install requirements.txt into venv
     /py/bin/pip install -r /tmp/requirements.txt && \
     # if running from docker-compose, will install dev reqirements
     if [ $DEV = "true" ]; \
         then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
     fi && \
-    # remove temp directory
+    # remove temporary reqirements
     rm -rf /tmp && \
+    apk del .tmp-build-deps && \
     # adds user in image (not root user)
     adduser \
         --disabled-password \
